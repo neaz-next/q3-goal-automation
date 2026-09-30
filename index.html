@@ -1,0 +1,255 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Automation Hours Saved</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single reading column (~72ch) with full-width data tables; summary strip, then per-module ledgers, then evidence. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #1b2230;
+  --muted: #5b6577;
+  --line: #dde2ea;
+  --accent: #2c5f8a;
+  --accent-soft: #e6eef6;
+  --ok: #1f7a4f;   --ok-bg: #e3f3ea;
+  --warn: #9a6400; --warn-bg: #fbf0d9;
+  --plan: #5b6577; --plan-bg: #eceff4;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #171d27; --fg: #e4e9f1; --muted: #9aa5b7; --line: #2a3342;
+    --accent: #7fb0dc; --accent-soft: #1d2a3a;
+    --ok: #6fd3a0; --ok-bg: #173327; --warn: #f0bf62; --warn-bg: #352a14; --plan: #9aa5b7; --plan-bg: #232b38;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #171d27; --fg: #e4e9f1; --muted: #9aa5b7; --line: #2a3342;
+  --accent: #7fb0dc; --accent-soft: #1d2a3a;
+  --ok: #6fd3a0; --ok-bg: #173327; --warn: #f0bf62; --warn-bg: #352a14; --plan: #9aa5b7; --plan-bg: #232b38;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 920px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; display: grid; gap: 40px; }
+header { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(26px, 4vw, 34px); line-height: 1.2; margin: 0; text-wrap: balance; font-weight: 700; }
+h2 { font-size: 20px; margin: 0; text-wrap: balance; font-weight: 600; }
+h3 { font-size: 15px; margin: 0; font-weight: 600; }
+p { margin: 0; max-width: 72ch; }
+.lede { color: var(--muted); max-width: 72ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 500; }
+section { display: grid; gap: 16px; }
+.num, td.n, th.n { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--font-mono); font-size: 13px; }
+
+/* Summary strip */
+.summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stat { background: var(--surface); padding: 18px 20px; display: grid; gap: 4px; min-width: 0; }
+.stat .k { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.stat .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.stat .v small { font-size: 14px; font-weight: 500; color: var(--muted); }
+.stat .d { font-size: 13px; color: var(--muted); }
+.stat.goal .v { color: var(--ok); }
+
+.formula { background: var(--accent-soft); border-radius: 8px; padding: 14px 18px; font-family: var(--font-mono); font-size: 13.5px; overflow-x: auto; }
+
+/* Tables */
+.table-box { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface); }
+td.n, th.n { text-align: right; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 1px solid var(--line); }
+tfoot td { font-weight: 600; border-bottom: 0; }
+.group td { background: var(--bg); font-size: 12px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding-block: 7px; }
+.mod-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 14px; justify-content: space-between; }
+.mod-head .sub { color: var(--muted); font-size: 14px; }
+
+/* Calculator */
+.calc { display: grid; gap: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.calc-row { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+.calc label { font-weight: 500; }
+.calc input { width: 5.5em; font: inherit; font-variant-numeric: tabular-nums; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+.calc input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.calc-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.calc-out div { display: grid; gap: 2px; }
+.calc-out .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+.calc-out .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+ul.plain { margin: 0; padding-left: 18px; display: grid; gap: 6px; max-width: 72ch; }
+.evidence { display: grid; gap: 10px; }
+.ev { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; }
+.ev .i { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-weight: 500; padding-top: 1px; }
+.ev p { max-width: none; }
+.ev .where { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); word-break: break-all; }
+a { color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); }
+hr { border: 0; border-top: 1px solid var(--line); margin: 0; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">QA Automation · FundedNext · Goal tracking</div>
+    <h1>Automation Hours Saved</h1>
+    <p class="lede">How much manual testing time the Email &amp; Notifications and Trading Operations (CFD) automation removes per regression cycle, measured against the goal of saving at least 3 engineering hours.</p>
+    <div class="meta">
+      <span>Owner: <b>Neaz Mahmud</b></span>
+      <span>Updated: <b>30 Sep 2026</b></span>
+      <span>Environment: <b>UAT</b></span>
+      <span>Goal: <b>≥ 3.0 engineering hours saved</b></span>
+    </div>
+  </header>
+
+  <section aria-label="Summary">
+    <div class="summary">
+      <div class="stat"><span class="k">Manual per cycle</span><span class="v num">4.53 <small>h</small></span><span class="d">53 cases across both modules</span></div>
+      <div class="stat"><span class="k">Automated hands-on</span><span class="v num">0.33 <small>h</small></span><span class="d">Start run + review results</span></div>
+      <div class="stat goal"><span class="k">Saved per cycle</span><span class="v num">4.20 <small>h</small></span><span class="d">1.4× the 3 h goal</span></div>
+      <div class="stat"><span class="k">Cases in scope</span><span class="v num">53</span><span class="d">9 Email &amp; Notifications · 44 Trading Ops</span></div>
+    </div>
+    <p class="note">Figures are projected per regression cycle from conservative estimates of manual time per case.</p>
+  </section>
+
+  <section>
+    <h2>How the saving is calculated</h2>
+    <div class="formula">hours saved per cycle = (Σ manual minutes per case − automated hands-on minutes) ÷ 60</div>
+    <ul class="plain">
+      <li><b>Manual minutes</b>: the time a tester spends running one case by hand, from setting up the account to checking the result.</li>
+      <li><b>Automated hands-on minutes</b>: the time a tester spends starting the automated run and reviewing its results, about 10 minutes per suite. The machine's run time is not counted, because nobody has to watch it.</li>
+      <li>One <b>regression cycle</b> runs every case in the module once.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="mod-head">
+      <h2>Module 1 · Email &amp; Notifications</h2>
+      <span class="sub">Sub-module: Breach / Status Notifications · Smart QA run 00200</span>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr><th>SQA ID</th><th>Test case</th><th>Manual steps</th><th class="n">Manual (min)</th></tr>
+        </thead>
+        <tbody>
+          <tr class="group"><td colspan="4">Free trial</td></tr>
+          <tr><td class="mono">0001820</td><td>Free trial breach email</td><td>Get or start trial, withdraw past daily limit, check Email Logs</td><td class="n">8</td></tr>
+          <tr><td class="mono">0001821</td><td>Free trial passed email</td><td>Get or start trial, deposit target, Profit Checker, check Email Logs</td><td class="n">8</td></tr>
+          <tr class="group"><td colspan="4">Phase completion</td></tr>
+          <tr><td class="mono">0002373</td><td>Phase 1 passed · 2-step</td><td>Create order, deposit target, Profit Checker, check Email Logs</td><td class="n">8</td></tr>
+          <tr><td class="mono">0002374</td><td>Phase 2 passed</td><td>Pass Phase 1, then pass Phase 2, check Email Logs</td><td class="n">12</td></tr>
+          <tr><td class="mono">0002375</td><td>Phase 1 passed · 1-step</td><td>Create order, deposit target, Profit Checker, check Email Logs</td><td class="n">8</td></tr>
+          <tr class="group"><td colspan="4">Account breach</td></tr>
+          <tr><td class="mono">0003551</td><td>DLL breach · challenge</td><td>Create order, withdraw past daily limit, check breach and Email Logs</td><td class="n">8</td></tr>
+          <tr><td class="mono">0003552</td><td>DLL breach · funded (FN)</td><td>Pass 1-step, sign agreement, confirm Target Reached, withdraw, check Email Logs</td><td class="n">18</td></tr>
+          <tr><td class="mono">0003553</td><td>MLL breach · challenge</td><td>Create order, raise daily limit, withdraw past monthly limit, check Email Logs</td><td class="n">8</td></tr>
+          <tr><td class="mono">0003554</td><td>MLL breach · funded (FN)</td><td>Reach funded account, raise daily limit, withdraw past monthly limit, check Email Logs</td><td class="n">18</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3">Manual per cycle (9 cases)</td><td class="n">96 min · 1.60 h</td></tr>
+          <tr><td colspan="3">Automated hands-on per cycle</td><td class="n">10 min · 0.17 h</td></tr>
+          <tr><td colspan="3">Saved per cycle</td><td class="n"><b>86 min · 1.43 h</b></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="mod-head">
+      <h2>Module 2 · Trading Operations (CFD)</h2>
+      <span class="sub">First 3 sub-modules · case counts from the test plan</span>
+    </div>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr><th>Sub-module</th><th>Priority</th><th class="n">Cases</th><th class="n">Manual min / case</th><th class="n">Manual (min)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Breach Event &amp; Notifications</td><td>P0</td><td class="n">20</td><td class="n">4</td><td class="n">80</td></tr>
+          <tr><td>Trade Disabled / Enabled Status</td><td>P1</td><td class="n">12</td><td class="n">3</td><td class="n">36</td></tr>
+          <tr><td>SL/TP Execution Validation</td><td>P1</td><td class="n">12</td><td class="n">5</td><td class="n">60</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4">Manual per cycle (44 cases)</td><td class="n">176 min · 2.93 h</td></tr>
+          <tr><td colspan="4">Automated hands-on per cycle</td><td class="n">10 min · 0.17 h</td></tr>
+          <tr><td colspan="4">Saved per cycle</td><td class="n"><b>166 min · 2.77 h</b></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Against the goal</h2>
+    <div class="table-box">
+      <table>
+        <thead>
+          <tr><th>Scope</th><th class="n">Manual (h)</th><th class="n">Automated hands-on (h)</th><th class="n">Saved (h)</th><th>Goal (≥ 3 h)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Module 1 only</td><td class="n">1.60</td><td class="n">0.17</td><td class="n">1.43</td><td>Met after 3 cycles</td></tr>
+          <tr><td>Module 2 only</td><td class="n">2.93</td><td class="n">0.17</td><td class="n">2.77</td><td>Met after 2 cycles</td></tr>
+          <tr><td><b>Both modules</b></td><td class="n"><b>4.53</b></td><td class="n"><b>0.33</b></td><td class="n"><b>4.20</b></td><td><b>Met in 1 cycle</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="calc" aria-labelledby="calc-title">
+      <h3 id="calc-title">Hours saved over time</h3>
+      <div class="calc-row">
+        <label for="cycles">Regression cycles per month</label>
+        <input id="cycles" type="number" min="0" max="60" step="1" value="4" inputmode="numeric">
+      </div>
+      <div class="calc-out">
+        <div><span class="k">Module 1 / month</span><span class="v" id="out-m1">5.7 h</span></div>
+        <div><span class="k">Module 2 / month</span><span class="v" id="out-m2">11.1 h</span></div>
+        <div><span class="k">Both / month</span><span class="v" id="out-both">16.8 h</span></div>
+        <div><span class="k">Both / quarter</span><span class="v" id="out-q">50.4 h</span></div>
+      </div>
+      <p class="note">Default assumes one cycle per week. Change it to match your release cadence.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Assumptions</h2>
+    <ul class="plain">
+      <li>Manual minutes are conservative estimates per case. The funded (FN) cases take longest by hand, because they go through a phase pass, an agreement and an admin confirmation first.</li>
+      <li>Automated hands-on time is about 10 minutes per suite, to start the run and review its results.</li>
+      <li>Savings exclude the one-time cost of writing and maintaining the automation.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Evidence</h2>
+    <div class="evidence">
+      <div class="ev"><span class="i">1</span><div><p><b>Smart QA run 00200 · Breach/Status Notifications (UAT).</b> The 9 cases in this run. Automated results post here with status, duration, timestamp and screenshot.</p><p class="where">qa.nextventures.io → Test Runs → ID 00200</p></div></div>
+      <div class="ev"><span class="i">2</span><div><p><b>Manual vs automated durations.</b> Smart QA stores the duration of each execution. Compare a past manual run of these cases with the automated run to confirm the per-case minutes.</p><p class="where">Smart QA → execution detail → duration</p></div></div>
+      <div class="ev"><span class="i">3</span><div><p><b>Merge request · feature/breach_status_notifications_neaz → main.</b> The automation code and its review.</p><p class="where"><a href="https://gitlab.nextventures.io/qa-automation/fundednext/-/merge_requests/new?merge_request%5Bsource_branch%5D=feature%2Fbreach_status_notifications_neaz" target="_blank" rel="noopener">gitlab.nextventures.io/qa-automation/fundednext</a></p></div></div>
+    </div>
+  </section>
+
+  <hr>
+  <p class="note">Figures are projected per regression cycle unless stated.</p>
+</div>
+
+<script>
+(function () {
+  var saved = { m1: 86 / 60, m2: 166 / 60 };
+  var input = document.getElementById("cycles");
+  function fmt(h) { return (Math.round(h * 10) / 10).toFixed(1) + " h"; }
+  function render() {
+    var n = Math.max(0, parseFloat(input.value) || 0);
+    document.getElementById("out-m1").textContent = fmt(saved.m1 * n);
+    document.getElementById("out-m2").textContent = fmt(saved.m2 * n);
+    document.getElementById("out-both").textContent = fmt((saved.m1 + saved.m2) * n);
+    document.getElementById("out-q").textContent = fmt((saved.m1 + saved.m2) * n * 3);
+  }
+  input.addEventListener("input", render);
+  render();
+})();
+</script>
+
+</body></html>
